@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"github.com/boltdb/bolt"
-	"github.com/gojp/goreportcard/download"
 )
 
 const (
@@ -28,17 +27,11 @@ const (
 func CheckHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	repo, err := download.Clean(r.FormValue("repo"))
-	if err != nil {
-		log.Println("ERROR: from download.Clean:", err)
-		http.Error(w, "Could not download the repository: "+err.Error(), http.StatusBadRequest)
-		return
-	}
-
+	repo := r.FormValue("repo")
 	log.Printf("Checking repo %q...", repo)
 
 	forceRefresh := r.Method != "GET" // if this is a GET request, try to fetch from cached version in boltdb first
-	_, err = newChecksResp(repo, forceRefresh)
+	_, err := newChecksResp(repo, forceRefresh)
 	if err != nil {
 		log.Println("ERROR: from newChecksResp:", err)
 		http.Error(w, "Could not analyze the repository: "+err.Error(), http.StatusBadRequest)
